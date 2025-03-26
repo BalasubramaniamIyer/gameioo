@@ -28,13 +28,13 @@ class Tilemap:
                 rects.append(pygame.Rect(tile['pos'][0] * self.tile_size, tile['pos'][1] * self.tile_size, self.tile_size, self.tile_size)) #this will get the rect of the tile at the given position
         return rects
     
-    def render(self, surf):
+    def render(self, surf, offset = (0, 0)):
         for tile in self.offgrid_tiles:
-            surf.blit(self.game.assets[tile['type']][tile['variant']], tile['pos']) #this will render the offgrid tiles to the screen
+            surf.blit(self.game.assets[tile['type']][tile['variant']], (tile['pos'][0] - offset[0], tile['pos'][1] - offset[1])) #this will render the offgrid tiles to the screen
 
         for loc in self.tilemap:
             tile = self.tilemap[loc]
-            surf.blit(self.game.assets[tile['type']][tile['variant']], (tile['pos'][0] * self.tile_size, tile['pos'][1] * self.tile_size))
+            surf.blit(self.game.assets[tile['type']][tile['variant']], (tile['pos'][0] * self.tile_size - offset[0], tile['pos'][1] * self.tile_size - offset[1])) #this will render the tiles to the screen
  #this will render the tiles to the screen
 
         
