@@ -31,10 +31,12 @@ class Tilemap:
     def render(self, surf, offset = (0, 0)):
         for tile in self.offgrid_tiles:
             surf.blit(self.game.assets[tile['type']][tile['variant']], (tile['pos'][0] - offset[0], tile['pos'][1] - offset[1])) #this will render the offgrid tiles to the screen
-
-        for loc in self.tilemap:
-            tile = self.tilemap[loc]
-            surf.blit(self.game.assets[tile['type']][tile['variant']], (tile['pos'][0] * self.tile_size - offset[0], tile['pos'][1] * self.tile_size - offset[1])) #this will render the tiles to the screen
- #this will render the tiles to the screen
+       
+        for x in range(int(offset[0]) // self.tile_size, (int(offset[0]) + surf.get_width()) // self.tile_size + 1): #this will get the tiles that are on the screen
+            for y in range(int(offset[1]) // self.tile_size, (int(offset[1]) + surf.get_height()) // self.tile_size + 1):
+                loc = str(x) + ";" + str(y)
+                if loc in self.tilemap:
+                    tile = self.tilemap[loc]
+                    surf.blit(self.game.assets[tile['type']][tile['variant']], (tile['pos'][0] * self.tile_size - offset[0], tile['pos'][1] * self.tile_size - offset[1]))
 
         
