@@ -16,7 +16,7 @@ class Game:
 
         self.clock = pygame.time.Clock() #this will be used to control the frame rate of the game
         
-        self.movement = [ False, False]
+        self.movement = [False, False]
         
 
         self.assets = {
@@ -41,6 +41,7 @@ class Game:
         self.player = Player(self, (50, 50), (8, 15)) 
 
         self.tilemap = Tilemap(self, tile_size = 16)
+        self.tilemap.load('map.json') #this will load the tilemap from a file
 
         self.scroll = [0, 0] #this will be used to scroll the tilemap
 
@@ -67,17 +68,17 @@ class Game:
                     sys.exit() #this will exit the game
 
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_LEFT:
+                    if event.key == pygame.K_a:
                         self.movement[0] = True
-                    if event.key == pygame.K_RIGHT:
+                    if event.key == pygame.K_d:
                         self.movement[1] = True #this will move the image to the right
-                    if event.key == pygame.K_UP :
+                    if event.key == pygame.K_w :
                         self.player.velocity[1] = -3
                                      
                 if event.type == pygame.KEYUP:
-                    if event.key == pygame.K_LEFT:
+                    if event.key == pygame.K_a:
                         self.movement[0] = False
-                    if event.key == pygame.K_RIGHT:
+                    if event.key == pygame.K_d:
                         self.movement[1] = False            
 
             self.screen.blit(pygame.transform.scale(self.display, self.screen.get_size()), (0, 0)) #this will scale the display to the screen size
