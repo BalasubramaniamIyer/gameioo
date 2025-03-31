@@ -50,10 +50,10 @@ class Game:
         self.player = Player(self, (50, 50), (8, 15)) 
 
         self.tilemap = Tilemap(self, tile_size = 16)
+        self.level = 0
+        self.load_level(self.level) #this will load the tilemap from a file
 
-        self.load_level(0) #this will load the tilemap from a file
-
-
+        self.screenshake = 0
 
     def load_level(self, map_id):
         self.tilemap.load('data/maps/' + str(map_id) + '.json')
@@ -77,15 +77,26 @@ class Game:
         self.particles = [] #this will create a list of particles
         self.scroll = [0 , 0]
         self.dead = 0
+        self.trnsition = -30
 
     def run(self):
         while True:
             self.display.blit(self.assets['background'], (0, 0)) #this will clear the display
 
+            self.screenshake = max(0, self.screenshake - 1)
+
+            if not len(self.enemies):
+                self.trnsition += 1
+                if self.trnsition > 30:
+                    self.level += 1
+                    self.load_level(self.level)
+            if self.trnsition < 0:
+                self.trnsition += 1
+
             if self.dead:
                 self.dead += 1
                 if self.dead > 40:
-                    self.load_level(0)
+                    self.load_level(self.level)
 
             self.scroll[0] += (self.player.rect().centerx - self.display.get_width() / 2 - self.scroll[0]) / 30 #this will scroll the tilemap to the left or right depending on the player position
             self.scroll[1] += (self.player.rect().centery - self.display.get_height() / 2 - self.scroll[1]) / 30
@@ -128,6 +139,7 @@ class Game:
                     if self.player.rect().collidepoint(projectile[0]):
                         self.projectiles.remove(projectile)
                         self.dead += 1
+                        self.screenshake = max(16, self.screenshake)
                         for i in range(30):
                             angle = random.random() * math.pi * 2
                             speed = random.random() * 5
@@ -169,9 +181,18 @@ class Game:
                     if event.key == pygame.K_a:
                         self.movement[0] = False
                     if event.key == pygame.K_d:
-                        self.movement[1] = False            
+                        self.movement[1] = False     
 
-            self.screen.blit(pygame.transform.scale(self.display, self.screen.get_size()), (0, 0)) #this will scale the display to the screen size
+            if self.trnsition:
+                trantition_surf = pygame.Surface(self.display.get_size())
+                pygame.draw.circle(trantition_surf, (255, 255, 255), (self.display.get_width() // 2, self.display.get_height() // 2), (30 - abs(self.trnsition)) * 8)
+                trantition_surf.set_colorkey((255, 255, 255))
+                self.display.blit(trantition_surf, (0, 0))
+
+            screenshake_offset = (random.random() * self.screenshake - self.screenshake / 2, random.random() * self.screenshake - self.screenshake / 2,)
+
+
+            self.screen.blit(pygame.transform.scale(self.display, self.screen.get_size()), screenshake_offset) #this will scale the display to the screen size
             pygame.display.update()
             self.clock.tick(60) #this will make the game run at 60 frames per second
 
