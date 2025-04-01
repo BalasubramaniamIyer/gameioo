@@ -16,7 +16,8 @@ class Game:
         pygame.display.set_caption('Vegabong')
         self.screen = pygame.display.set_mode((640, 480)) #this will set the screen size of the game
 
-        self.display = pygame.Surface((320, 240)) #this will set the display size of the game. it is used to render the game at a lower display then scale it up to the screen size
+        self.display = pygame.Surface((320, 240),pygame.SRCALPHA) #this will set the display size of the game. it is used to render the game at a lower display then scale it up to the screen size
+        self.display_2 = pygame.Surface((320, 240))
 
         self.clock = pygame.time.Clock() #this will be used to control the frame rate of the game
         
@@ -44,6 +45,19 @@ class Game:
             'projectile': load_image('projectile.png'),
 
         }
+        self.sfx = {
+            'jump': pygame.mixer.Sound('data/sfx/jump.wav'),
+            'dash': pygame.mixer.Sound('data/sfx/dash.wav'),
+            'hit': pygame.mixer.Sound('data/sfx/hit.wav'),
+            'shoot': pygame.mixer.Sound('data/sfx/shoot.wav'),
+            'ambience': pygame.mixer.Sound('data/sfx/ambience.wav'),
+        }
+
+        self.sfx['ambience'].set_volume(0.2)
+        self.sfx['shoot'].set_volume(0.4)
+        self.sfx['hit'].set_volume(0.8)
+        self.sfx['dash'].set_volume(0.3)
+        self.sfx['jump'].set_volume(0.7)
 
         self.clouds = Clouds(self.assets['clouds'], count=16) #this will create a list of clouds
         
@@ -80,8 +94,14 @@ class Game:
         self.trnsition = -30
 
     def run(self):
+        pygame.mixer.music.load('data/music.wav')
+        pygame.mixer.music.set_volume(0.5)
+        pygame.mixer.music.play(-1)
+
+        self.sfx['ambience'].play(-1)
         while True:
-            self.display.blit(self.assets['background'], (0, 0)) #this will clear the display
+            self.display.fill((0, 0, 0, 0))
+            self.display_2.blit(self.assets['background'], (0, 0)) #this will clear the display
 
             self.screenshake = max(0, self.screenshake - 1)
 
@@ -108,7 +128,7 @@ class Game:
                     self.particles.append(Particle(self, 'leaf', pos, velocity=[-0.1, 0.3], frame=random.randint(0, 20))) #this will create a new particle at the given position
 
             self.clouds.update()
-            self.clouds.render(self.display, offset = render_scroll)
+            self.clouds.render(self.display_2, offset = render_scroll)
 
             self.tilemap.render(self.display, offset = self.scroll) #this will render the tilemap to the display
 
@@ -139,6 +159,8 @@ class Game:
                     if self.player.rect().collidepoint(projectile[0]):
                         self.projectiles.remove(projectile)
                         self.dead += 1
+                        self.sfx['shoot'].play()
+
                         self.screenshake = max(16, self.screenshake)
                         for i in range(30):
                             angle = random.random() * math.pi * 2
@@ -161,8 +183,10 @@ class Game:
                 if kill:
                     self.particles.remove(particle)
                     
-
-
+            display_mask = pygame.mask.from_surface(self.display)
+            display_sillhouette = display_mask.to_surface(setcolor=(0, 0, 0, 180), unsetcolor=(0, 0, 0, 0))
+            for offset in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                self.display_2.blit(display_sillhouette, offset)
             for event in pygame.event.get():  
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -174,7 +198,8 @@ class Game:
                     if event.key == pygame.K_d:
                         self.movement[1] = True #this will move the image to the right
                     if event.key == pygame.K_SPACE :
-                        self.player.jump()
+                        if self.player.jump():
+                            self.sfx['jump'].play()
                     if event.key == pygame.K_w:
                         self.player.dash()
                 if event.type == pygame.KEYUP:
@@ -189,10 +214,11 @@ class Game:
                 trantition_surf.set_colorkey((255, 255, 255))
                 self.display.blit(trantition_surf, (0, 0))
 
+            self.display_2.blit(self.display, (0, 0))
+
+
             screenshake_offset = (random.random() * self.screenshake - self.screenshake / 2, random.random() * self.screenshake - self.screenshake / 2,)
-
-
-            self.screen.blit(pygame.transform.scale(self.display, self.screen.get_size()), screenshake_offset) #this will scale the display to the screen size
+            self.screen.blit(pygame.transform.scale(self.display_2, self.screen.get_size()), screenshake_offset) #this will scale the display to the screen size
             pygame.display.update()
             self.clock.tick(60) #this will make the game run at 60 frames per second
 
